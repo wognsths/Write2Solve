@@ -3,7 +3,7 @@ from app.services.llm_service import verify_solution
 
 router = APIRouter()
 
-@router.post("/check")
+@router.post("/verify")
 async def check_solution(solution: str):
     try:
         result = verify_solution(solution)

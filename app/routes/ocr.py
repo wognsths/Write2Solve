@@ -3,7 +3,7 @@ from app.services.mathpix_service import process_image
 
 router = APIRouter()
 
-@router.post("/process")
+@router.post("/ocr")
 async def process_ocr(image_base64: str):
     try:
         result = process_image(image_base64)
