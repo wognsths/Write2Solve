@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routes import ocr, verify
+from app.routes import ocr, verify, knowledge
 import os
 from pathlib import Path
 import requests
@@ -9,6 +9,7 @@ app = FastAPI()
 
 app.include_router(ocr.router, tags=["OCR"])
 app.include_router(verify.router, tags=["Verification"])
+app.include_router(knowledge.router, tags=["Knowledge"])
 
 MATHPIX_API_ID = os.getenv("MATHPIX_API_ID")
 MATHPIX_API_KEY = os.getenv("MATHPIX_API_KEY")
