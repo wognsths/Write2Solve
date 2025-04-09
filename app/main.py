@@ -7,8 +7,8 @@ from fastapi import HTTPException
 
 app = FastAPI()
 
-app.include_router(ocr.router, prefix="/ocr", tags=["OCR"])
-app.include_router(verify.router, prefix="/verify", tags=["Verification"])
+app.include_router(ocr.router, tags=["OCR"])
+app.include_router(verify.router, tags=["Verification"])
 
 MATHPIX_API_ID = os.getenv("MATHPIX_API_ID")
 MATHPIX_API_KEY = os.getenv("MATHPIX_API_KEY")

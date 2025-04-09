@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 import os
 import json
+from services.knowledge_service import retrieve_knowledge_base
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 SOLUTION_DIR = Path("./data/local/solutions")
@@ -13,6 +14,7 @@ client = OpenAI(api_key=OPENAI_API_KEY)
 
 def verify_solution(latex_data: dict) -> str:
     latex_expr = latex_data["latex_expression"]
+    knowledge_base = retrieve_knowledge_base(latex_data["latex_expression"])
 
     prompt=f"""
 Instructions:
@@ -20,6 +22,8 @@ Instructions:
 - Verify the user's solution based on rigorous proof and mathematical theories.
 - If the user's solution is wrong, show why the solution is wrong and give the correct solution.
 - If the user's solution is correct, briefly explain why user's solution is correct.
+- You have access to the following knowledge base:
+{knowledge_base}
 
 User's math solution: {latex_expr}
 """
