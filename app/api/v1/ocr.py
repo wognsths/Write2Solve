@@ -70,16 +70,16 @@ async def update_equation(equation_id: str, latex: str = Form(...)):
     Update an existing equation with corrected LaTeX
     """
     try:
-        # 새로운 LaTeX 렌더링
+        # New LaTeX rendering
         rendered_latex = latex_service.render(latex)
         
-        # 수식 업데이트
+        # Update equation
         success = storage_service.update_equation(equation_id, latex, rendered_latex)
         
         if not success:
             raise HTTPException(status_code=404, detail="Equation not found")
         
-        # 응답 생성
+        # Generate response
         response = EquationResponse(
             id=equation_id,
             latex=latex,
@@ -97,7 +97,6 @@ async def save_solution(equation_id: str = Form(...), solution: str = Form(...))
     Save a solution for an equation and verify if it's correct
     """
     try:
-        # 저장된 수식 가져오기
         equation_path = os.path.join(storage_service.equations_dir, f"{equation_id}.json")
         if not os.path.exists(equation_path):
             raise HTTPException(status_code=404, detail="Equation not found")
@@ -107,10 +106,8 @@ async def save_solution(equation_id: str = Form(...), solution: str = Form(...))
             
         latex = equation_data["latex"]
         
-        # 솔루션 검증
         verification_result = reasoning_service.verify_solution(latex, solution)
-        
-        # 솔루션 저장
+
         solution_id = storage_service.save_solution(
             equation_id=equation_id,
             solution=solution,
