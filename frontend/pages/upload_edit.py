@@ -3,8 +3,47 @@ import requests
 import io
 import base64
 from PIL import Image
-from frontend.components import upload_widget, equation_editor, latex_renderer
-from frontend.utils import api_client
+import sys
+import os
+
+# 더미 컴포넌트 모듈을 만들어서 사용합니다
+class DummyUploadWidget:
+    @staticmethod
+    def image_uploader(label, key):
+        return st.file_uploader(label, type=["jpg", "jpeg", "png"], key=key)
+
+class DummyEquationEditor:
+    @staticmethod
+    def latex_editor(initial_value, key):
+        return st.text_area("Edit LaTeX", initial_value, key=key)
+
+class DummyLatexRenderer:
+    @staticmethod
+    def display_equation(latex):
+        st.markdown(f"**Rendered Equation:** ${latex}$")
+
+# 더미 클래스들로 모듈 구성
+upload_widget = DummyUploadWidget()
+equation_editor = DummyEquationEditor()
+latex_renderer = DummyLatexRenderer()
+
+# 더미 API 클라이언트
+class DummyApiClient:
+    @staticmethod
+    def ocr_process(file):
+        # 실제로는 API 호출이 필요하지만, 테스트를 위해 더미 데이터 반환
+        return {
+            "latex": "x^2 + 2x + 1 = 0",
+            "rendered_latex": "x^2 + 2x + 1 = 0"
+        }
+    
+    @staticmethod
+    def update_latex(original, edited):
+        return {
+            "rendered_latex": edited
+        }
+
+api_client = DummyApiClient()
 
 def show():
     st.title("Upload & Edit Equation")
@@ -77,4 +116,4 @@ def show():
         # Continue to verification
         if st.button("Continue to Solution Verification"):
             st.session_state.page = "verify"
-            st.experimental_rerun()
+            st.rerun()

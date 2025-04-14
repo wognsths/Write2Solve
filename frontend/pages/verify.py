@@ -1,56 +1,84 @@
 import streamlit as st
-from frontend.components import latex_renderer, solution_display
-from frontend.utils import api_client
+import json
 
 def show():
+    """Show the verify solution page"""
     st.title("Verify Solution")
     
-    # Check if we have an equation
+    # Check if we have an equation to work with
     if not st.session_state.get("equation_latex"):
         st.warning("No equation to verify. Please upload and process an equation first.")
         
         if st.button("Go to Upload & Edit"):
             st.session_state.page = "upload_edit"
-            st.experimental_rerun()
+            st.rerun()
         return
-    
-    # Display the equation
+        
+    # Display current equation
     st.subheader("Your Equation")
-    latex_renderer.display_equation(st.session_state.rendered_latex)
+    st.latex(st.session_state.equation_latex)
     
-    # Solution input
-    st.subheader("Enter Your Solution")
-    solution = st.text_area(
-        "Type your solution here",
-        height=150,
-        help="Enter your step-by-step solution to the equation"
+    # Solution generation section
+    st.subheader("Generate Solution")
+    
+    # Options for solution
+    solution_type = st.radio(
+        "Solution Type",
+        ["Step-by-Step", "Final Answer Only"],
+        index=0
     )
     
-    # Verify button
-    if solution and st.button("Verify Solution"):
-        with st.spinner("Verifying solution..."):
-            # Call verification API
-            verification_result = api_client.verify_solution(
-                st.session_state.equation_latex,
-                solution
-            )
+    detail_level = st.select_slider(
+        "Detail Level",
+        options=["Basic", "Intermediate", "Detailed"],
+        value="Intermediate"
+    )
+    
+    # Generate solution button
+    if st.button("Solve Equation"):
+        with st.spinner("Generating solution..."):
+            # Simulate API call with a fake response
+            solution = {
+                "steps": [
+                    {"explanation": "Identify the equation type: quadratic equation in standard form $ax^2 + bx + c = 0$", 
+                     "latex": "x^2 + 2x + 1 = 0"},
+                    {"explanation": "Factor the equation", 
+                     "latex": "(x + 1)^2 = 0"},
+                    {"explanation": "Solve for x", 
+                     "latex": "x = -1"}
+                ],
+                "final_answer": "x = -1"
+            }
             
-            if verification_result:
-                # Save result to session state
-                st.session_state.verification_result = verification_result
+            # Display solution
+            st.success("Solution generated!")
+            
+            if solution_type == "Step-by-Step":
+                st.subheader("Step-by-Step Solution")
+                for i, step in enumerate(solution["steps"]):
+                    with st.expander(f"Step {i+1}", expanded=True):
+                        st.write(step["explanation"])
+                        st.latex(step["latex"])
+            
+            st.subheader("Final Answer")
+            st.latex(solution["final_answer"])
+            
+            # Save to history option
+            if st.button("Save to History"):
+                if "history_data" not in st.session_state:
+                    st.session_state.history_data = []
+                    
+                # Add current problem to history
+                import datetime
+                st.session_state.history_data.append({
+                    "date": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+                    "equation": st.session_state.equation_latex,
+                    "solution": solution["final_answer"]
+                })
                 
-                # Show result
-                st.subheader("Verification Result")
-                solution_display.show_verification(verification_result)
-            else:
-                st.error("Failed to verify solution. Please try again.")
-    
-    # If we have a verification result, display it
-    elif "verification_result" in st.session_state:
-        st.subheader("Verification Result")
-        solution_display.show_verification(st.session_state.verification_result)
-    
-    # Back to edit button
-    if st.button("Back to Edit Equation"):
-        st.session_state.page = "upload_edit"
-        st.experimental_rerun()
+                st.success("Saved to history!")
+                
+                # Option to go to history
+                if st.button("View History"):
+                    st.session_state.page = "history"
+                    st.rerun()

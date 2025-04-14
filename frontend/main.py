@@ -1,5 +1,15 @@
 import streamlit as st
-from frontend.pages import home, upload_edit, verify, history
+import os
+import sys
+
+# Add the current directory to path
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+# Import pages
+from pages import home, upload_edit, verify, history
+
+# Create static directory if it doesn't exist
+os.makedirs('static', exist_ok=True)
 
 # Set page configuration
 st.set_page_config(
@@ -31,16 +41,28 @@ page = st.sidebar.radio(
 # Page routing
 if page == "Home":
     st.session_state.page = "home"
-    home.show()
+    if 'home' in globals():
+        home.show()
+    else:
+        st.error("Home page module not found")
 elif page == "Upload & Edit":
     st.session_state.page = "upload_edit"
-    upload_edit.show()
+    if 'upload_edit' in globals():
+        upload_edit.show()
+    else:
+        st.error("Upload & Edit page module not found")
 elif page == "Verify Solution":
     st.session_state.page = "verify"
-    verify.show()
+    if 'verify' in globals():
+        verify.show()
+    else:
+        st.error("Verify Solution page module not found")
 elif page == "History":
     st.session_state.page = "history"
-    history.show()
+    if 'history' in globals():
+        history.show()
+    else:
+        st.error("History page module not found")
 
 # Footer
 st.sidebar.markdown("---")
