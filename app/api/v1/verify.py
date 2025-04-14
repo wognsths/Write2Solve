@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Body
-from app.services.reasoning_service import ReasoningService
-from app.models.solution import SolutionRequest, SolutionResponse
+from services.reasoning_service import ReasoningService
+from models.solution import SolutionRequest, SolutionResponse
 
 router = APIRouter()
 reasoning_service = ReasoningService()
