@@ -7,6 +7,11 @@ class SolutionRequest(BaseModel):
     latex: str
     solution: str
 
+class SolutionRequestWithPrompt(BaseModel):
+    """Request model for solution verification with custom prompt"""
+    prompt: str
+    solution: str
+
 class SolutionResponse(BaseModel):
     """Response model for solution verification"""
     is_correct: bool

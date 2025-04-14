@@ -126,3 +126,26 @@ async def save_solution(equation_id: str = Form(...), solution: str = Form(...))
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to save solution: {str(e)}")
+
+@router.get("/equations/{equation_id}", response_model=EquationResponse)
+async def get_equation(equation_id: str):
+    """
+    Get the equation by ID
+    """
+    try:
+        # 저장된 수식 가져오기
+        equation_path = os.path.join(storage_service.equations_dir, f"{equation_id}.json")
+        if not os.path.exists(equation_path):
+            raise HTTPException(status_code=404, detail="Equation not found")
+            
+        with open(equation_path, "r") as f:
+            equation_data = json.load(f)
+        
+        return EquationResponse(
+            id=equation_id,
+            latex=equation_data["latex"],
+            rendered_latex=equation_data["rendered_latex"]
+        )
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get equation: {str(e)}")

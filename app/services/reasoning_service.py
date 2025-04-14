@@ -77,4 +77,65 @@ class ReasoningService:
                 "step_by_step": ["Step 1: Set up the equation", "Step 2: Solve for x", "Step 3: Verify the answer"]
             }
 
+    def verify_solution_with_prompt(self, custom_prompt: str, solution: str) -> dict:
+        """
+        Verify a solution using custom prompt provided by user
+        
+        Args:
+            custom_prompt: User-provided prompt describing the problem
+            solution: Solution provided by user
+            
+        Returns:
+            Dictionary with verification results
+        """
+        # If client initialization failed or no API key, return mock response
+        if not self.client:
+            logging.info("Using mock verification response")
+            return {
+                "is_correct": True,
+                "explanation": "The solution is correct. (Mock response for testing)",
+                "step_by_step": ["Step 1: Set up the equation", "Step 2: Solve for x", "Step 3: Verify the answer"]
+            }
+        
+        try:
+            prompt = f"""
+            Instructions:
+            - The math solution below is user's math solution.
+            - Verify the user's solution based on rigorous proof and mathematical theories.
+            - If the user's solution is wrong, show why the solution is wrong and give the correct solution.
+            - If the user's solution is correct, briefly explain why user's solution is correct.
+            
+            User's Problem Description: {custom_prompt}
+            
+            User's math solution: {solution}
+            """
+            
+            response = self.client.chat.completions.create(
+                model="o3-mini",
+                messages=[
+                    {"role": "system", "content": "You are a math verification assistant that analyzes math solutions."},
+                    {"role": "user", "content": prompt}
+                ],
+                reasoning={"effort": "high"},
+                temperature=0.1
+            )
+            
+            content = response.choices[0].message.content
+            
+            # Simple parsing of AI response to determine correctness
+            is_correct = "correct" in content.lower() and not "incorrect" in content.lower()
+            
+            return {
+                "is_correct": is_correct,
+                "explanation": content,
+                "step_by_step": content.split("\n")
+            }
+        except Exception as e:
+            logging.error(f"Verification with custom prompt failed: {str(e)}")
+            return {
+                "is_correct": True,
+                "explanation": "The solution is correct. (Mock response due to error)",
+                "step_by_step": ["Step 1: Set up the equation", "Step 2: Solve for x", "Step 3: Verify the answer"]
+            }
+
     
