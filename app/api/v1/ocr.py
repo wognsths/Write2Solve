@@ -43,7 +43,7 @@ async def process_image(file: UploadFile = File(...)):
         # Render the LaTeX for display
         rendered_latex = latex_service.render(latex_text)
         
-        # 수식 저장
+        # save equation
         equation_id = storage_service.save_equation(image_id, latex_text, rendered_latex)
         
         # Create response
@@ -133,7 +133,6 @@ async def get_equation(equation_id: str):
     Get the equation by ID
     """
     try:
-        # 저장된 수식 가져오기
         equation_path = os.path.join(storage_service.equations_dir, f"{equation_id}.json")
         if not os.path.exists(equation_path):
             raise HTTPException(status_code=404, detail="Equation not found")
