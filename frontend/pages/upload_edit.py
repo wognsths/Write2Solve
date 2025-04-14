@@ -6,6 +6,9 @@ from PIL import Image
 import sys
 import os
 
+# 실제 API 클라이언트 임포트
+from utils.api_client import ocr_process, update_latex
+
 # 더미 컴포넌트 모듈을 만들어서 사용합니다
 class DummyUploadWidget:
     @staticmethod
@@ -27,24 +30,6 @@ upload_widget = DummyUploadWidget()
 equation_editor = DummyEquationEditor()
 latex_renderer = DummyLatexRenderer()
 
-# 더미 API 클라이언트
-class DummyApiClient:
-    @staticmethod
-    def ocr_process(file):
-        # 실제로는 API 호출이 필요하지만, 테스트를 위해 더미 데이터 반환
-        return {
-            "latex": "x^2 + 2x + 1 = 0",
-            "rendered_latex": "x^2 + 2x + 1 = 0"
-        }
-    
-    @staticmethod
-    def update_latex(original, edited):
-        return {
-            "rendered_latex": edited
-        }
-
-api_client = DummyApiClient()
-
 def show():
     st.title("Upload & Edit Equation")
     
@@ -63,7 +48,7 @@ def show():
     if uploaded_file is not None:
         # Display uploaded image
         image = Image.open(uploaded_file)
-        st.image(image, caption="Uploaded Equation", use_column_width=True)
+        st.image(image, caption="Uploaded Equation", use_container_width=True)
         
         # Process with OCR on button click
         if st.button("Process Equation"):
@@ -72,12 +57,13 @@ def show():
                 uploaded_file.seek(0)
                 
                 # Call OCR API
-                ocr_result = api_client.ocr_process(uploaded_file)
+                ocr_result = ocr_process(uploaded_file)
                 
                 if ocr_result:
                     # Save to session state
                     st.session_state.equation_latex = ocr_result["latex"]
                     st.session_state.rendered_latex = ocr_result["rendered_latex"]
+                    st.session_state.equation_id = ocr_result["id"]
                     
                     st.success("Equation processed successfully!")
                 else:
@@ -101,13 +87,13 @@ def show():
             if st.button("Update Rendering"):
                 with st.spinner("Updating..."):
                     # Call API to re-render with corrections
-                    result = api_client.update_latex(
-                        st.session_state.equation_latex, 
+                    result = update_latex(
+                        st.session_state.equation_id, 
                         edited_latex
                     )
                     
                     if result:
-                        st.session_state.equation_latex = edited_latex
+                        st.session_state.equation_latex = result["latex"]
                         st.session_state.rendered_latex = result["rendered_latex"]
                         st.success("Rendering updated!")
                     else:
