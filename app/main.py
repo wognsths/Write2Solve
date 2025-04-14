@@ -1,50 +1,31 @@
 from fastapi import FastAPI
-from app.routes import ocr, verify, knowledge
-import os
-from pathlib import Path
-import requests
-from fastapi import HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from app.api.v1 import ocr, verify, knowledge
 
-app = FastAPI()
+app = FastAPI(
+    title="Write2Solve API",
+    description="API for OCR of handwritten math equations with solutions",
+    version="0.1.0"
+)
 
-app.include_router(ocr.router, tags=["OCR"])
-app.include_router(verify.router, tags=["Verification"])
-app.include_router(knowledge.router, tags=["Knowledge"])
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, replace with frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-MATHPIX_API_ID = os.getenv("MATHPIX_API_ID")
-MATHPIX_API_KEY = os.getenv("MATHPIX_API_KEY")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-if not MATHPIX_API_ID:
-    raise ValueError("MATHPIX_API_ID environment variable is not set")
-if not MATHPIX_API_KEY:
-    raise ValueError("MATHPIX_API_KEY environment variable is not set")
-if not OPENAI_API_KEY:
-    raise ValueError("OPENAI_API_KEY environment variable is not set")
+# Include routers
+app.include_router(ocr.router, prefix="/api/v1", tags=["OCR"])
+app.include_router(verify.router, prefix="/api/v1", tags=["Verification"])
+app.include_router(knowledge.router, prefix="/api/v1", tags=["Knowledge"])
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-DATA_DIR = BASE_DIR / "data" / "local"
+@app.get("/", tags=["Health"])
+async def root():
+    return {"message": "Write2Solve API is running"}
 
-@app.get("/")
-def read_root():
-    try:
-        response = requests.get("https://api.mathpix.com/v3/health")
-        if response.status_code == 200:
-            return {
-                "message": "Handwritten Math Solution Checker API",
-                "status": "healthy",
-                "mathpix_api": "available"
-            }
-        else:
-            return {
-                "message": "Handwritten Math Solution Checker API",
-                "status": "warning",
-                "mathpix_api": "unavailable"
-            }
-    except requests.exceptions.RequestException as e:
-        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
